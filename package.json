@@ -1,0 +1,12 @@
+{
+  "name": "employee_tracker_CLI",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:sbolotnikov/employee_tracker_CLI.git",
+  "author": "Sergey Bolotnikov <sbolotnikov@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "inquirer": "^7.3.3",
+    "mysql": "^2.18.1"
+  }
+}
