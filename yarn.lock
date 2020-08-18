@@ -69,6 +69,11 @@ color-name@~1.1.4:
   resolved "https://registry.yarnpkg.com/color-name/-/color-name-1.1.4.tgz#c2a09a87acbde69543de6f63fa3995c826c536a2"
   integrity sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==
 
+console-table-printer@^2.3.12:
+  version "2.3.12"
+  resolved "https://registry.yarnpkg.com/console-table-printer/-/console-table-printer-2.3.12.tgz#2542c060aa5cc9e9d57bbf56457de158db13010e"
+  integrity sha512-ZtG3ksugh6ikIVllByDxuwpbO46Qq6LC1aMwZUi6UMJJlzjucb//3BKLzjnnx2lmgJc7hPy6L7RQAmJCwqejMQ==
+
 core-util-is@~1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"

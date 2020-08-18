@@ -6,6 +6,7 @@
   "author": "Sergey Bolotnikov <sbolotnikov@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "console-table-printer": "^2.3.12",
     "inquirer": "^7.3.3",
     "mysql": "^2.18.1"
   }
