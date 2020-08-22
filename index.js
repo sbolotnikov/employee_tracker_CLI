@@ -10,8 +10,35 @@ var employees, roles, managers, departments = [];
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 // Combine styled and normal strings
-log(chalk.blue('Hello') + ' World' + chalk.red('!'));
+log('\n');
+log('\n');
+log(chalk.whiteBright("--                                                                               `-.    "));
+log(chalk.whiteBright("sy-                                                                              :ys     "));
+log(chalk.whiteBright("+sso++++s:                              `yy`                                         +so++ssoooss.                        :s+"));
+log(chalk.whiteBright("oy:    +/                              .ys                                          s:   sy.                             /y:   "));
+log(chalk.whiteBright("oy:        ``   .`   `.`    ``   `.`   -y+     `..   `.`     .`   ..`     `..       `    sy.   ``  `.`  `..`       `.`   +y-  `.`"));
+log(chalk.blueBright("oy+:::/` ./oy-:sss+`/sos/ -/os:`+sos+` :s/   :s+:+s/-/os.   +y/`+o::so` :o+:+s/         `sy` ./oy-/yss:o+::oo.  `/s/:+s- oy`-osos"));
+log(chalk.blueBright("sy:.---`   +yos. syoo``ys   /y+s:  +s: /y:  +y-   /y/ `ss` :y/.ss.-/yo`/y/.:os:         `sy`   +yoo`  .+:  :y/ `oy`  `:. ss/s-.os"));
+log(chalk.blueBright("sy.     `  +ys`  syo  -yo   /ys.   +y: /y: `yy`   :y+  :y/-y/ :yo--.   sy:-.`           .yy    +ys`   ./o//sy: -yo      `sys/s+. "));
+log(chalk.redBright("`yy`    .s- oy:  `sy.  -y+   +y:   :y+  /y:  +y:  `os.   oss+  .ss`  `-`+y/   -.         -ss    oy/   .sy``/sy- `ss.  `-`.yy.`+s- "));
+log(chalk.redBright("`oo+++oos+  +o`  `o+   `+s+- oy//+o+-   .oo+. :oo+o/`    .yo    `/ooo+-  -+soo/`         .o+    +o`    :oso:`+o+-`/oooo: `o+   :oo"));
+log(chalk.redBright("sy                          +s`   "));
+log(chalk.redBright("ss                        `/y."));
+log('\n');
+
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -29,82 +56,14 @@ var connection = mysql.createConnection({
 
 const connectionQuery = util.promisify(connection.query.bind(connection));
 
-async function getManagersTable() {
+function getManagersTable() {
     var condition = '';
+    managers = [];
     var query = "SELECT manager_id FROM employee GROUP BY (manager_id);";
-    connectionQuery(query)
+    return connectionQuery(query)
         .then(res => {
             res.forEach(idItem => {
                 condition += ` OR (id=${idItem.manager_id})`
-            });
-            condition = condition.substr(4, condition.length - 4);
-            var query2 = "CREATE TABLE manager (SELECT id AS manager_id, CONCAT(COALESCE(first_name, ''),' ', COALESCE(last_name, ''))  AS m_name FROM employee WHERE " + condition + ");";
-            return connectionQuery(query2);
-        })
-        .then(res2 => {
-            var query3 = "INSERT INTO manager (manager_id, M_NAME) VALUE (0,'None')";
-            return connectionQuery(query3);
-        })
-        .then(res3 => {
-            // log("got throu")
-        })
-        .catch(err => {
-            if (err) throw err;
-        });
-}
-
-const allEmployeesList = async () => {
-    var employees = [];
-    var roles = [];
-    return await getManagersTable().then(res => {
-        setTimeout(() => {
-            // console.log("mainbody!");
-            var query4 = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, departments.d_name, manager.m_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) JOIN manager USING(manager_id) ORDER BY employee.id;";
-            return connectionQuery(query4)
-                .then(res4 => {
-                    const p = new Table({
-                        columns: [
-                            { name: 'ID', alignment: 'left' },
-                            { name: 'Name', alignment: 'right' },
-                            { name: 'Position', alignment: 'right' },
-                            { name: 'Salary', alignment: 'right' },
-                            { name: 'Department', alignment: 'right' },
-                            { name: 'Manager', alignment: 'right' },
-                        ],
-                    });
-                    //add rows with color
-                    for (let i = 0; i < res4.length; i++) {
-                        p.addRow({
-                            ID: res4[i].id, Name: res4[i].first_name + " " +
-                                res4[i].last_name, Position: res4[i].title, Salary: res4[i].salary, Department: res4[i].d_name, Manager: res4[i].m_name
-                        }, { color: (i % 2) ? 'white' : 'blue' });
-                    }
-                    console.log('');
-                    p.printTable();
-                    try {
-                        var query1 = "DROP TABLE IF EXISTS manager;";
-                        connection.query(query1, function (err, res) {
-                            if (err) throw err;
-                            runAppChoice();
-                        });
-                    } catch (e) { return }
-                })
-                .catch(err => {
-                    if (err) throw err;
-                });
-        }, 1000);
-    });
-}
-const allByManager = () => {
-    var condition = '';
-    var managers = [];
-    var query = "SELECT manager_id FROM employee GROUP BY (manager_id);";
-
-    connectionQuery(query)
-        .then(res => {
-
-            res.forEach(idItem => {
-                condition += ` OR (id=${idItem.manager_id})`;
                 managers.push(idItem.manager_id);
             });
             condition = condition.substr(4, condition.length - 4);
@@ -114,68 +73,132 @@ const allByManager = () => {
         .then(res2 => {
             var query3 = "INSERT INTO manager (manager_id, M_NAME) VALUE (0,'None')";
             return connectionQuery(query3);
-        })
-        .then(res3 => {
-            for (let i = 0; i < managers.length; i++) {
-                var query4 = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, departments.d_name, manager.m_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) JOIN manager USING(manager_id) WHERE employee.manager_id=" + managers[i] + ";";
-                connection.query(query4, function (err, res) {
-                    if (err) throw err;
-                    //Create a table
-                    const p = new Table({
-                        columns: [
-                            { name: 'ID', alignment: 'left' },
-                            { name: 'Name', alignment: 'right' },
-                            { name: 'Position', alignment: 'right' },
-                            { name: 'Salary', alignment: 'right' },
-                            { name: 'Department', alignment: 'right' },
-                        ],
-                    });
-                    console.log('-----------------------------');
-                    console.log(`Manager :  ${res[0].m_name}`);
-                    //add rows with color
-                    for (let i = 0; i < res.length; i++) {
-                        p.addRow({
-                            ID: res[i].id, Name: res[i].first_name + " " +
-                                res[i].last_name, Position: res[i].title, Salary: res[i].salary, Department: res[i].d_name
-                        }, { color: (i % 2) ? 'white' : 'blue' });
-                    }
-                    console.log('');
-                    p.printTable();
-                })
-            }
+        });
+}
 
-            try {
-                var query1 = "DROP TABLE IF EXISTS manager;";
-                connection.query(query1, function (err, res) {
-                    if (err) throw err;
-                    runAppChoice();
+const allEmployeesList = () => {
+    var employees = [];
+    var roles = [];
+    // const managersTable = await getManagersTable;
+
+
+    return getManagersTable().then(res => {
+
+        // console.log("mainbody!");
+        var query4 = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, departments.d_name, manager.m_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) JOIN manager USING(manager_id) ORDER BY employee.id;";
+        return connectionQuery(query4)
+            .then(res4 => {
+                const p = new Table({
+                    columns: [
+                        { name: 'ID', alignment: 'left' },
+                        { name: 'Name', alignment: 'right' },
+                        { name: 'Position', alignment: 'right' },
+                        { name: 'Salary', alignment: 'right' },
+                        { name: 'Department', alignment: 'right' },
+                        { name: 'Manager', alignment: 'right' },
+                    ],
                 });
-            } catch (e) { return }
-        })
+                //add rows with color
+                for (let i = 0; i < res4.length; i++) {
+                    p.addRow({
+                        ID: res4[i].id, Name: res4[i].first_name + " " +
+                            res4[i].last_name, Position: res4[i].title, Salary: res4[i].salary, Department: res4[i].d_name, Manager: res4[i].m_name
+                    }, { color: (i % 2) ? 'white' : 'blue' });
+                }
+                console.log('');
+                p.printTable();
+                try {
+                    var query1 = "DROP TABLE IF EXISTS manager;";
+                    connection.query(query1, function (err, res) {
+                        if (err) throw err;
+                        runAppChoice();
+                    });
+                } catch (e) { return }
+            })
+            .catch(err => {
+                if (err) throw err;
+            });
+    });
+}
+const allByManager = () => {
+
+    return getManagersTable().then(res3 => {
+        for (let i = 0; i < managers.length; i++) {
+            var query4 = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, departments.d_name, manager.m_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) JOIN manager USING(manager_id) WHERE employee.manager_id=" + managers[i] + ";";
+            connection.query(query4, function (err, res) {
+                if (err) throw err;
+                //Create a table
+                const p = new Table({
+                    columns: [
+                        { name: 'ID', alignment: 'left' },
+                        { name: 'Name', alignment: 'right' },
+                        { name: 'Position', alignment: 'right' },
+                        { name: 'Salary', alignment: 'right' },
+                        { name: 'Department', alignment: 'right' },
+                    ],
+                });
+                console.log('-----------------------------');
+                console.log(`Manager :  ${res[0].m_name}`);
+                //add rows with color
+                for (let i = 0; i < res.length; i++) {
+                    p.addRow({
+                        ID: res[i].id, Name: res[i].first_name + " " +
+                            res[i].last_name, Position: res[i].title, Salary: res[i].salary, Department: res[i].d_name
+                    }, { color: (i % 2) ? 'white' : 'blue' });
+                }
+                console.log('');
+                p.printTable();
+            })
+        }
+
+        try {
+            var query1 = "DROP TABLE IF EXISTS manager;";
+            connection.query(query1, function (err, res) {
+                if (err) throw err;
+                runAppChoice();
+            });
+        } catch (e) { return }
+    })
         .catch(err => {
             if (err) throw err;
         });
 };
 
-const viewDepartmentSalaryBudget = () => {
+
+
+
+
+
+
+
+
+
+
+function getSalaryTotalsTable() {
     var condition = '';
-    var managers = [];
+    managers = [];
     var query = "SELECT manager_id FROM employee GROUP BY (manager_id);";
-    connectionQuery(query)
+    return connectionQuery(query)
         .then(res => {
             res.forEach(idItem => {
                 condition += ` OR (id=${idItem.manager_id})`;
                 managers.push(idItem.manager_id);
             });
             condition = condition.substr(4, condition.length - 4);
-            var query2 = "CREATE TABLE salaryTotals (SELECT SUM(role.salary) totalDepSalary, departments.d_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) GROUP BY (department_id));";
+            var query2 = "CREATE TABLE salaryTotals (SELECT SUM(role.salary) totalDepSalary, departments.d_name, departments.department_id FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) GROUP BY (department_id));";
             return connectionQuery(query2);
         })
         .then(res2 => {
             var query3 = "SELECT * FROM salaryTotals";
             return connectionQuery(query3);
         })
-        .then(res3 => {
+
+
+}
+
+const viewDepartmentSalaryBudget = () => {
+
+    return getSalaryTotalsTable().then(res3 => {
             const p1 = new Table({
                 title: `Departments salary budget`,
                 columns: [
@@ -212,24 +235,8 @@ const viewDepartmentSalaryBudget = () => {
 }
 
 const allByDepartment = () => {
-    var condition = '';
-    var managers = [];
-    var query = "SELECT manager_id FROM employee GROUP BY (manager_id);";
-    connectionQuery(query)
-        .then(res => {
-            res.forEach(idItem => {
-                condition += ` OR (id=${idItem.manager_id})`;
-                managers.push(idItem.manager_id);
-            });
-            condition = condition.substr(4, condition.length - 4);
-            var query2 = "CREATE TABLE salaryTotals (SELECT SUM(role.salary) totalDepSalary, departments.d_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) GROUP BY (department_id));";
-            return connectionQuery(query2);
-        })
-        .then(res2 => {
-            var query3 = "SELECT * FROM departments";
-            return connectionQuery(query3);
-        })
-        .then(res3 => {
+    return getSalaryTotalsTable().then(res3 => {
+        console.log(res3);
             for (let i = 0; i < res3.length; i++) {
 
                 var queryOut = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, departments.d_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) WHERE department_id=" + res3[i].department_id + ";";
