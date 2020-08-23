@@ -36,15 +36,17 @@ Design the following database schema containing three tables:
 * [Questions](#questions)
 * [Review](#review)
 ## Installation 
-1.Clone my repository. Install dependencies. The dependencies are, jest for running the provided tests, and inquirer for collecting input from the user.
+1. Clone my repository. Install dependencies. The dependencies are, jest for running the provided tests, and inquirer for collecting input from the user.
 
 ```
 git clone git@github.com:sbolotnikov/employee_tracker_CLI.git
 yarn install
 ```
+
 2. Start MySQL Workbench 
 3. Run schema.sql and seed.sql
-4.Start node:
+4. Start node:
+
 ```
 node index.js
 ```
@@ -55,9 +57,13 @@ Look at video for further instructions:
 [YouTube](https://youtu.be/T3FLJTATWkg )
 
 User has a menu of things that could be done:
+
 Employee- Add, Update Role or Manager, Delete, View All
+
 Role Add, Update, Delete, View All
+
 Departments Add, Update, Delete, View
+
 Views store All views named above and Employees by Manager, by Department, and Departments Salary budget
 
 Employee add,edit,view and delete example:

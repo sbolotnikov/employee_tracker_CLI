@@ -8,21 +8,7 @@ const { indexOf } = require("./lib/questions");
 const log = console.log;
 var employees, roles, managers, departments = [];
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Combine styled and normal strings
+// Some funky opening titles
 log('\n');
 log('\n');
 log(chalk.whiteBright("--                                                                               `-.    "));
@@ -39,7 +25,7 @@ log(chalk.redBright("sy                          +s`   "));
 log(chalk.redBright("ss                        `/y."));
 log('\n');
 
-
+// setting server connections
 var connection = mysql.createConnection({
     host: "localhost",
 
@@ -53,9 +39,10 @@ var connection = mysql.createConnection({
     password: "asdf1234",
     database: "employees_db"
 });
-
+// Promisified query connection function
 const connectionQuery = util.promisify(connection.query.bind(connection));
 
+// function drop created table and return to main menu (runAppChoice)
 function dropTable(tableName) {
     try {
         connection.query("DROP TABLE IF EXISTS ??", [tableName], function (err, res) {
@@ -64,10 +51,13 @@ function dropTable(tableName) {
         });
     } catch (e) { return }
 }
+
+// function create table from managers and set new value for people without managers for using in Views
 function getManagersTable() {
     var condition = '';
     managers = [];
     var query = "SELECT manager_id FROM employee GROUP BY (manager_id);";
+    // using chain of promises we return a promise in order to continue the chain inmain function
     return connectionQuery(query)
         .then(res => {
             res.forEach(idItem => {
@@ -84,13 +74,17 @@ function getManagersTable() {
         });
 }
 
+// create All Employees List
 const allEmployeesList = () => {
     var employees = [];
     var roles = [];
+    // using above function to set magager table
     return getManagersTable().then(res => {
+        // big junction table 
         var query4 = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, departments.d_name, manager.m_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) JOIN manager USING(manager_id) ORDER BY employee.id;";
         return connectionQuery(query4)
             .then(res4 => {
+                // creates table from query results
                 const p = new Table({
                     columns: [
                         { name: 'ID', alignment: 'left' },
@@ -118,13 +112,14 @@ const allEmployeesList = () => {
     });
 }
 const allByManager = () => {
-
+    // similar beginning
     return getManagersTable().then(res3 => {
         for (let i = 0; i < managers.length; i++) {
+            //BUT  main query now set for each individual manager to pull it employees
             var query4 = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, departments.d_name, manager.m_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) JOIN manager USING(manager_id) WHERE employee.manager_id=" + managers[i] + ";";
             connection.query(query4, function (err, res) {
                 if (err) throw err;
-                //Create a table
+                //Create a tables for each manager
                 const p = new Table({
                     columns: [
                         { name: 'ID', alignment: 'left' },
@@ -147,6 +142,7 @@ const allByManager = () => {
                 p.printTable();
             })
         }
+        // finishing with drop of table and return
         dropTable("manager");
     })
         .catch(err => {
@@ -154,23 +150,17 @@ const allByManager = () => {
         });
 };
 
+// creates salary budget view table
 const viewDepartmentSalaryBudget = () => {
-    var condition = '';
-    managers = [];
-    var query = "SELECT manager_id FROM employee GROUP BY (manager_id);";
-    return connectionQuery(query)
-        .then(res => {
-            res.forEach(idItem => {
-                condition += ` OR (id=${idItem.manager_id})`;
-                managers.push(idItem.manager_id);
-            });
-            condition = condition.substr(4, condition.length - 4);
-            var query2 = "CREATE TABLE salaryTotals (SELECT SUM(role.salary) totalDepSalary, departments.d_name, departments.department_id FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) GROUP BY (department_id));";
-            return connectionQuery(query2);
-        }).then(res2 => {
+    // creates table
+    var query2 = "CREATE TABLE salaryTotals (SELECT SUM(role.salary) totalDepSalary, departments.d_name, departments.department_id FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) GROUP BY (department_id));";
+    return connectionQuery(query2)
+        .then(res2 => {
+            // sort it by name
             var query3 = "SELECT * FROM salaryTotals ORDER BY d_name";
             return connectionQuery(query3);
         }).then(res3 => {
+            // makes table
             const p1 = new Table({
                 title: `Departments salary budget`,
                 columns: [
@@ -185,11 +175,13 @@ const viewDepartmentSalaryBudget = () => {
                 }, { color: (i % 2) ? 'white' : 'blue' });
             }
             p1.printTable();
+            // calculatesgrand total
             var query4 = "SELECT SUM(totalDepSalary) total FROM salaryTotals;";
             return connectionQuery(query4);
         })
         .then(res4 => {
             console.log("---------------------------------");
+            // display grand total, drop table and return to main menu
             log(chalk.yellow.bgRed('Total company salary budget:') + chalk.white.bgRed.bold('$' + res4[0].total));
             console.log('');
             console.log('');
@@ -199,16 +191,17 @@ const viewDepartmentSalaryBudget = () => {
             if (err) throw err;
         });
 }
-
+// creates view of employees by department
 const allByDepartment = () => {
     var query3 = "SELECT * FROM departments ORDER BY d_name ASC";
     return connectionQuery(query3).then(res3 => {
-        console.log(res3);
+        // gets id for each department
         for (let i = 0; i < res3.length; i++) {
+            // gets data on all employees from the department
             var queryOut = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, departments.d_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) WHERE department_id=" + res3[i].department_id + ";";
             connection.query(queryOut, function (err, res) {
                 if (err) throw err;
-                //Create a table
+                //Create a table for each department
                 const p = new Table({
                     title: `Department:  ${res[0].d_name}`,
                     columns: [
@@ -231,29 +224,35 @@ const allByDepartment = () => {
                 p.printTable();
             });
         };
+        // finish up and go back
         dropTable("salaryTotals");
     }).catch(err => {
         if (err) throw err;
     });
 }
-
+// adding employee function
 const addEmployee = () => {
     let query = "SELECT CONCAT(COALESCE(first_name, ''),' ', COALESCE(last_name, ''))  AS name, id AS value FROM employee ;";
     connectionQuery(query)
         .then(res => {
+            // creates array of employees names with ID for setting up the manager
             employees = res;
+            // option for no manager
             employees.push({ 'name': 'None', 'value': 0 })
             let query2 = "SELECT title AS name, role_id AS value FROM role;";
             return connectionQuery(query2)
         })
         .then(res2 => {
+            // array of Roles
             roles = res2;
+            // sets of questions 
             return inquirer.prompt([
                 {
                     type: "input",
                     message: "Please enter employee's first name",
                     name: "nameChoice",
                     validate: nameChoice => {
+                        // validation for 30 chars length and letters
                         let alphaExp = /^[A-Za-z\-]{0,29}$/;
                         if (!nameChoice.match(alphaExp)) {
                             return "Use letters and -. Max length 30";
@@ -292,6 +291,7 @@ const addEmployee = () => {
                 },
 
             ]).then(response => {
+                // Adding employee query
                 let query = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${response.nameChoice}','${response.lastNameChoice}',${response.roleChoice},${response.managerChoice})`;
                 return connectionQuery(query);
             })
@@ -304,17 +304,20 @@ const addEmployee = () => {
             if (err) throw err;
         });
 }
+// update for Role and Manager of employee
 const updateEmployee = () => {
     let employeeUpdate = 0;
     let updateChoice = 0;
     let query = "SELECT CONCAT(COALESCE(first_name, ''),' ', COALESCE(last_name, ''))  AS name, id AS value FROM employee ;";
     connectionQuery(query)
         .then(res => {
+            // update array of employee
             employees = res;
             let query2 = "SELECT title AS name, role_id AS value FROM role;";
             return connectionQuery(query2)
         })
         .then(res2 => {
+            // roles array
             roles = res2;
             let query3 = "SELECT d_name AS name, department_id AS value FROM departments;";
             return connectionQuery(query3)
@@ -330,6 +333,7 @@ const updateEmployee = () => {
                     name: "employeeChoice"
                 },
                 {
+                    // what kind of update needed
                     type: "list",
                     message: "Please choose what you wish to update",
                     choices: [{ 'name': 'Manager', 'value': 1 }, { 'name': 'Role', 'value': 2 }, { 'name': 'Delete', 'value': 3 }],
@@ -339,12 +343,14 @@ const updateEmployee = () => {
             ]).then(res => {
                 employeeUpdate = res.employeeChoice;
                 updateChoice = res.updateChoice;
+                // update list of potential manages by erasing the self and adding None manager option 
                 managers = employees.filter(person => person.value != employeeUpdate);
                 managers.push({ 'name': 'None', 'value': 0 })
                 let query4 = "SELECT id,role_id, manager_id FROM employee WHERE id=" + employeeUpdate + ";";
                 return connectionQuery(query4)
             })
                 .then(res4 => {
+                    // setting up default value before change
                     let defaultRole = res4[0].role_id;
                     let defaultmanager = res4[0].manager_id;
                     function checkManagers(managers) {
@@ -355,6 +361,7 @@ const updateEmployee = () => {
                         return defaultRole === roles.value;
                     }
                     defaultRole = roles.findIndex(checkRole);
+                    // questions for update
                     return inquirer.prompt([
                         {
                             type: "list",
@@ -374,6 +381,7 @@ const updateEmployee = () => {
                         },
                     ]).then(res => {
                         let queryUpdate = "";
+                        // setting result queries to make changes
                         switch (updateChoice) {
                             case 1:
                                 queryUpdate = `UPDATE employee SET manager_id=${res.managerChoice} WHERE id = ${employeeUpdate}`;
@@ -398,18 +406,22 @@ const updateEmployee = () => {
             if (err) throw err;
         });
 }
+// update roles
 const updateRoles = () => {
     let roleUpdate = 0;
     let updateChoice = 0;
     let query = "SELECT d_name AS name, department_id AS value FROM departments;";
     connectionQuery(query)
         .then(res => {
+            // gets departments array
             departments = res;
             let query2 = "SELECT title AS name, role_id AS value FROM role;";
             return connectionQuery(query2)
         })
         .then(res2 => {
+            // gets roles array
             roles = res2;
+            // question about what update needed
             return inquirer.prompt([
                 {
                     type: "list",
@@ -437,6 +449,7 @@ const updateRoles = () => {
                 let defaultDepartment = 0;
                 let defaultSalary = 0;
                 if (updateChoice > 2) {
+                    // setup default values
                     defaultDepartment = res3[0].department_id;
                     defaultSalary = res3[0].salary;
 
@@ -445,6 +458,7 @@ const updateRoles = () => {
                     }
                     defaultDepartment = departments.findIndex(checkDep);
                 }
+                // update questions
                 return inquirer.prompt([
                     {
                         type: "input",
@@ -485,6 +499,7 @@ const updateRoles = () => {
                     },
                 ]).then(res => {
                     let queryUpdate = "";
+                    // queries setting from questions
                     if (updateChoice === 2) queryUpdate = `INSERT INTO role (title, salary, department_id) VALUES ('${res.titleChoice}','${res.salaryChoice}',${res.depChoice})`
                     if (updateChoice === 3) queryUpdate = `UPDATE role SET salary=${res.salaryChoice}, department_id=${res.depChoice} WHERE role_id = ${roleUpdate}`;
                     if (updateChoice === 4) queryUpdate = `DELETE FROM role WHERE role_id = ${roleUpdate}`;
@@ -504,7 +519,7 @@ const updateRoles = () => {
             if (err) throw err;
         });
 }
-
+// views all roles
 const viewAllRoles = () => {
     var query = "SELECT role.role_id, role.title, role.salary, departments.d_name FROM role JOIN departments USING(department_id)"
     return connectionQuery(query)
@@ -532,13 +547,15 @@ const viewAllRoles = () => {
         });
 
 }
+
+// update of departments
 const updateDeps = () => {
     let updateChoice = 0;
     let query = "SELECT d_name AS name, department_id AS value FROM departments;";
     connectionQuery(query)
         .then(res => {
             departments = res;
-
+// questions about update
             return inquirer.prompt([
                 {
                     type: "list",
@@ -572,6 +589,7 @@ const updateDeps = () => {
             ]).then(res => {
                 updateChoice = res.updateChoice;
                 let queryUpdate = "";
+                // setting queies for update
                 if (updateChoice === 2) queryUpdate = `INSERT INTO departments (d_name) VALUES ('${res.titleChoice}')`
                 if (updateChoice === 3) queryUpdate = `UPDATE departments SET d_name='${res.titleChoice}' WHERE department_id = ${res.depChoice}`;
                 if (updateChoice === 4) queryUpdate = `DELETE FROM departments WHERE department_id = ${res.depChoice}`;
@@ -589,7 +607,7 @@ const updateDeps = () => {
             if (err) throw err;
         });
 }
-
+// All departments view
 const viewAllDeps = () => {
     var query = "SELECT department_id, d_name FROM departments"
     return connectionQuery(query)
@@ -615,7 +633,7 @@ const viewAllDeps = () => {
         });
 
 }
-
+// function of sub-menu for Employees
 const employeeChoice = () => {
     return inquirer.prompt([
         {
@@ -642,7 +660,7 @@ const employeeChoice = () => {
             response.query();
         });
 }
-
+// function of sub-menu for Views 
 const viewsChoice = () => {
     return inquirer.prompt([
         {
@@ -682,11 +700,13 @@ const viewsChoice = () => {
         });
 }
 
-
+// exit App function
 const exitProgram = () => {
     connection.end();
     process.exit(0);
 }
+
+// Main Menu function
 const runAppChoice = () => {
     return inquirer.prompt([
         {
