@@ -56,6 +56,14 @@ var connection = mysql.createConnection({
 
 const connectionQuery = util.promisify(connection.query.bind(connection));
 
+function dropTable(tableName) {
+    try {
+        connection.query("DROP TABLE IF EXISTS ??", [tableName], function (err, res) {
+            if (err) throw err;
+            runAppChoice();
+        });
+    } catch (e) { return }
+}
 function getManagersTable() {
     var condition = '';
     managers = [];
@@ -79,12 +87,7 @@ function getManagersTable() {
 const allEmployeesList = () => {
     var employees = [];
     var roles = [];
-    // const managersTable = await getManagersTable;
-
-
     return getManagersTable().then(res => {
-
-        // console.log("mainbody!");
         var query4 = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, departments.d_name, manager.m_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) JOIN manager USING(manager_id) ORDER BY employee.id;";
         return connectionQuery(query4)
             .then(res4 => {
@@ -107,13 +110,7 @@ const allEmployeesList = () => {
                 }
                 console.log('');
                 p.printTable();
-                try {
-                    var query1 = "DROP TABLE IF EXISTS manager;";
-                    connection.query(query1, function (err, res) {
-                        if (err) throw err;
-                        runAppChoice();
-                    });
-                } catch (e) { return }
+                dropTable("manager");
             })
             .catch(err => {
                 if (err) throw err;
@@ -150,31 +147,14 @@ const allByManager = () => {
                 p.printTable();
             })
         }
-
-        try {
-            var query1 = "DROP TABLE IF EXISTS manager;";
-            connection.query(query1, function (err, res) {
-                if (err) throw err;
-                runAppChoice();
-            });
-        } catch (e) { return }
+        dropTable("manager");
     })
         .catch(err => {
             if (err) throw err;
         });
 };
 
-
-
-
-
-
-
-
-
-
-
-function getSalaryTotalsTable() {
+const viewDepartmentSalaryBudget = () => {
     var condition = '';
     managers = [];
     var query = "SELECT manager_id FROM employee GROUP BY (manager_id);";
@@ -187,18 +167,10 @@ function getSalaryTotalsTable() {
             condition = condition.substr(4, condition.length - 4);
             var query2 = "CREATE TABLE salaryTotals (SELECT SUM(role.salary) totalDepSalary, departments.d_name, departments.department_id FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) GROUP BY (department_id));";
             return connectionQuery(query2);
-        })
-        .then(res2 => {
-            var query3 = "SELECT * FROM salaryTotals";
+        }).then(res2 => {
+            var query3 = "SELECT * FROM salaryTotals ORDER BY d_name";
             return connectionQuery(query3);
-        })
-
-
-}
-
-const viewDepartmentSalaryBudget = () => {
-
-    return getSalaryTotalsTable().then(res3 => {
+        }).then(res3 => {
             const p1 = new Table({
                 title: `Departments salary budget`,
                 columns: [
@@ -221,13 +193,7 @@ const viewDepartmentSalaryBudget = () => {
             log(chalk.yellow.bgRed('Total company salary budget:') + chalk.white.bgRed.bold('$' + res4[0].total));
             console.log('');
             console.log('');
-            try {
-                var query1 = "DROP TABLE IF EXISTS salaryTotals;";
-                connection.query(query1, function (err, res) {
-                    if (err) throw err;
-                    runAppChoice();
-                });
-            } catch (e) { return }
+            dropTable("salaryTotals");
         })
         .catch(err => {
             if (err) throw err;
@@ -235,49 +201,40 @@ const viewDepartmentSalaryBudget = () => {
 }
 
 const allByDepartment = () => {
-    return getSalaryTotalsTable().then(res3 => {
+    var query3 = "SELECT * FROM departments ORDER BY d_name ASC";
+    return connectionQuery(query3).then(res3 => {
         console.log(res3);
-            for (let i = 0; i < res3.length; i++) {
-
-                var queryOut = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, departments.d_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) WHERE department_id=" + res3[i].department_id + ";";
-                connection.query(queryOut, function (err, res) {
-                    if (err) throw err;
-                    //Create a table
-                    const p = new Table({
-                        title: `Department:  ${res[0].d_name}`,
-                        columns: [
-                            { name: 'ID', alignment: 'left' },
-                            { name: 'Name', alignment: 'right' },
-                            { name: 'Position', alignment: 'right' },
-                            { name: 'Salary', alignment: 'right' },
-                        ],
-                    });
-                    console.log('-----------------------------');
-                    //add rows with color
-                    for (let i = 0; i < res.length; i++) {
-                        p.addRow({
-                            ID: res[i].id, Name: res[i].first_name + " " +
-                                res[i].last_name, Position: res[i].title, Salary: `$${res[i].salary}`
-                        }, { color: (i % 2) ? 'white' : 'blue' });
-                    }
-                    console.log('');
-                    p.printTable();
+        for (let i = 0; i < res3.length; i++) {
+            var queryOut = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, departments.d_name FROM employee JOIN role USING(role_id) JOIN departments USING(department_id) WHERE department_id=" + res3[i].department_id + ";";
+            connection.query(queryOut, function (err, res) {
+                if (err) throw err;
+                //Create a table
+                const p = new Table({
+                    title: `Department:  ${res[0].d_name}`,
+                    columns: [
+                        { name: 'ID', alignment: 'left' },
+                        { name: 'Name', alignment: 'right' },
+                        { name: 'Position', alignment: 'right' },
+                        { name: 'Salary', alignment: 'right' },
+                    ],
                 });
-            }
-            console.log('');
-            console.log('');
-
-            try {
-                var query1 = "DROP TABLE IF EXISTS salaryTotals;";
-                connection.query(query1, function (err, res) {
-                    if (err) throw err;
-                    runAppChoice();
-                });
-            } catch (e) { return }
-        })
-        .catch(err => {
-            if (err) throw err;
-        });
+                console.log('\n');
+                console.log('-----------------------------');
+                //add rows with color
+                for (let i = 0; i < res.length; i++) {
+                    p.addRow({
+                        ID: res[i].id, Name: res[i].first_name + " " +
+                            res[i].last_name, Position: res[i].title, Salary: `$${res[i].salary}`
+                    }, { color: (i % 2) ? 'white' : 'blue' });
+                }
+                console.log('');
+                p.printTable();
+            });
+        };
+        dropTable("salaryTotals");
+    }).catch(err => {
+        if (err) throw err;
+    });
 }
 
 const addEmployee = () => {
@@ -509,15 +466,11 @@ const updateRoles = () => {
                         default: defaultSalary,
                         name: "salaryChoice",
                         validate: salaryChoice => {
-                            let alphaExp = /^[0-9]{0,7}$/;
+                            let alphaExp = /^[0-9]{0,10}$/;
                             if (!salaryChoice.match(alphaExp)) {
-                                return "Use numbers only and no more then 6 figure. You don't know how to print money";
+                                return "Use numbers only and no more then 9 figure. You don't know how to print money";
                             } else {
-                                if (salaryChoice < 10000) {
-                                    return "who do you think will work for such money"
-                                } else {
-                                    return true;
-                                }
+                                return true;
                             }
                         },
                         when: (updateChoice === 2) || (updateChoice === 3)
