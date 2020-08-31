@@ -21,8 +21,8 @@ log(chalk.blueBright("sy:.---`   +yos. syoo``ys   /y+s:  +s: /y:  +y-   /y/ `ss`
 log(chalk.blueBright("sy.     `  +ys`  syo  -yo   /ys.   +y: /y: `yy`   :y+  :y/-y/ :yo--.   sy:-.`           .yy    +ys`   ./o//sy: -yo      `sys/s+. "));
 log(chalk.redBright("`yy`    .s- oy:  `sy.  -y+   +y:   :y+  /y:  +y:  `os.   oss+  .ss`  `-`+y/   -.         -ss    oy/   .sy``/sy- `ss.  `-`.yy.`+s- "));
 log(chalk.redBright("`oo+++oos+  +o`  `o+   `+s+- oy//+o+-   .oo+. :oo+o/`    .yo    `/ooo+-  -+soo/`         .o+    +o`    :oso:`+o+-`/oooo: `o+   :oo"));
-log(chalk.redBright("sy                          +s`   "));
-log(chalk.redBright("ss                        `/y."));
+log(chalk.redBright("sy                          +s`                          +s`"));
+log(chalk.redBright("ss                        `/y.                        `/y."));
 log('\n');
 
 // setting server connections
